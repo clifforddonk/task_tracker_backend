@@ -1,0 +1,11 @@
+# Set default owners. Replace with actual GitHub handles.
+
+-       @Ebenezeroffei @HudsonAdjetey
+
+# Example fine-grained ownership (uncomment and edit as needed)
+
+# /backend/ @backend-lead
+
+# /frontend/ @frontend-lead
+
+# /.github/ @devops-lead

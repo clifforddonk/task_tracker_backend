@@ -1,0 +1,32 @@
+name: CI - Next.js
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+      - name: Install
+        run: |
+          if [ -f package-lock.json ]; then npm ci; else npm install; fi
+      - name: Lint
+        run: |
+          if [ -f node_modules/.bin/eslint ]; then npx eslint .; fi
+      - name: Type Check
+        run: |
+          if [ -f tsconfig.json ]; then npx tsc --noEmit; fi
+      - name: Build
+        run: |
+          if [ -f package.json ]; then npm run build; fi
+      - name: Tests
+        run: |
+          if npm run | grep -q " test"; then npm test --if-present; fi
