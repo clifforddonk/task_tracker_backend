@@ -23,7 +23,10 @@ class Task(models.Model):
 
   title = models.CharField(max_length=255)
   description = models.TextField()
+  
+  
   #Change to ForeignKey to Account model after @clifforddonk pushes app
+  # assigned_to = models.ManyToManyField(User, related_name='tasks_assigned')
   assigned_to = models.CharField(max_length=100)
   #Change to ForeignKey to Account model after @clifforddonk pushes app
   created_by = models.CharField(max_length=100)
