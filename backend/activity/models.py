@@ -1,15 +1,31 @@
 from django.db import models
+from django.conf import settings
 from tasks.models import Task
-# Create your models here.
+
+
 class Activity(models.Model):
-    action = models.CharField(max_length=255)
+    ACTION_CHOICES = [
+        ('created', 'Created'),
+        ('updated', 'Updated'),
+        ('deleted', 'Deleted'),
+        ('status_changed', 'Status Changed'),
+        ('assigned', 'Assigned'),
+        ('unassigned', 'Unassigned'),
+        ('comment_added', 'Comment Added'),
+    ]
+
+    task = models.ForeignKey(Task, on_delete=models.CASCADE,
+                             related_name='activities', null=True, blank=True)
+    user = models.ForeignKey(
+        settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, related_name='activities')
+    action = models.CharField(max_length=50, choices=ACTION_CHOICES)
+    description = models.TextField()
     timestamp = models.DateTimeField(auto_now_add=True)
-    user = models.CharField(max_length=255)  # Change to ForeignKey to Account model after @clifforddonk pushes app
-    related_task = models.ForeignKey(Task, on_delete=models.CASCADE, null=True, blank=True)
-    description = models.TextField(blank=True)
-    
+    changes = models.JSONField(null=True, blank=True)  # Store what changed
+
     class Meta:
         ordering = ['-timestamp']
-    
+        verbose_name_plural = 'Activities'
+
     def __str__(self):
-        return f"{self.user} - {self.action} at {self.timestamp}"
+        return f"{self.user} - {self.action} - {self.timestamp}"
