@@ -17,7 +17,7 @@ class SignUpView(generics.GenericAPIView):
             serializer.save()
 
             response = {
-                "message": "User Created Successfully",
+                "message": "User Created Successfully. Redirecting to Login Page",
                 "data": serializer.data
             }
 

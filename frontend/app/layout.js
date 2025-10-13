@@ -8,8 +8,8 @@ const nunito = Nunito({
 });
 
 export const metadata = {
-  title: "ByteBlog",
-  description: "A mordern blog site",
+  title: "TaskTracker",
+  description: "An internal TaskTracker",
 };
 
 export default function RootLayout({ children }) {

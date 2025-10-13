@@ -16,7 +16,7 @@ class SignUpSerializer(serializers.ModelSerializer):
         email_exists=User.objects.filter(email=attrs["email"]).exists()
 
         if email_exists:
-            raise ValidationError("Email has already been used")
+            raise ValidationError("User with this email already exists. Try using a different email.")
         
         return super().validate(attrs) 
 
