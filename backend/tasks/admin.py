@@ -156,3 +156,4 @@ class TaskAdmin(admin.ModelAdmin):
         """Optimize query with select_related and prefetch_related"""
         qs = super().get_queryset(request)
         return qs.select_related('created_by').prefetch_related('assigned_to')
+
