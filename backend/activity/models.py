@@ -4,7 +4,7 @@ from tasks.models import Task
 class Activity(models.Model):
     action = models.CharField(max_length=255)
     timestamp = models.DateTimeField(auto_now_add=True)
-    user = models.CharField(max_length=100)  # Change to ForeignKey to Account model after @clifforddonk pushes app
+    user = models.CharField(max_length=255)  # Change to ForeignKey to Account model after @clifforddonk pushes app
     related_task = models.ForeignKey(Task, on_delete=models.CASCADE, null=True, blank=True)
     description = models.TextField(blank=True)
     
