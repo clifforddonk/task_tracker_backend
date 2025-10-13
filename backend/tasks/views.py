@@ -10,13 +10,21 @@ from rest_framework.permissions import IsAuthenticated
 
 # Create your views here.
 
-@api_view(['GET'])
-# @permission_classes([IsAuthenticated])
+@api_view(['GET', 'POST'])
+@permission_classes([IsAuthenticated])
 def task_list(request):
     if request.method == 'GET':
         tasks = Task.objects.all()
         serializer = TaskSerializer(tasks, many=True, context={'request': request})
         return Response(serializer.data)
+    elif request.method == 'POST':
+        if request.user.role != 'admin':
+            return Response({'detail': 'Only admin users can create tasks.'}, status=status.HTTP_403_FORBIDDEN)
+        serializer = TaskSerializer(data=request.data, context={'request': request})
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 @api_view(['GET', 'PUT', 'DELETE', 'POST'])
 @permission_classes([IsAuthenticated])
@@ -32,7 +40,7 @@ def task_detail(request, pk):
         serializer = TaskSerializer(task, context={'request': request})
         return Response(serializer.data)
 
-    elif request.method == 'PUT' :
+    elif request.method == 'PUT':
         if is_staff and not is_admin:
             allowed_fields = {'status'}
             provided_fields = set(request.data.keys())
@@ -41,7 +49,7 @@ def task_detail(request, pk):
                 return Response({'detail': 'Staff users can only update the status field.'}, status=status.HTTP_403_FORBIDDEN)
 
             serializer = TaskSerializer(task, data=request.data, partial=True, context={'request': request})
-        else :
+        else:
             serializer = TaskSerializer(task, data=request.data, context={'request': request})
         
         if serializer.is_valid():
@@ -50,12 +58,7 @@ def task_detail(request, pk):
 
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
     
-    elif request.method == 'POST' and is_admin:
-        serializer = TaskSerializer(data=request.data, context={'request': request})
-        if serializer.is_valid():
-            serializer.save()
-            return Response(serializer.data, status=status.HTTP_201_CREATED)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+    # Removed POST method from detail view for better API design
     
     elif request.method == 'DELETE' and is_admin:
         task.delete()

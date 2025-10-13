@@ -3,6 +3,7 @@ from django.dispatch import receiver
 from tasks.models import Task
 from .models import Activity
 from django.contrib.auth import get_user_model
+from threading import local
 
 User = get_user_model()
 
@@ -33,7 +34,6 @@ def log_task_activity(sender, instance, created, **kwargs):
     user = None
 
     # Try to get user from thread local storage (set in views)
-    from threading import local
     _thread_locals = local()
     user = getattr(_thread_locals, 'user', None)
 

@@ -1,7 +1,7 @@
 from django.contrib import admin
 from django.utils.html import format_html
 from django.utils import timezone
-from datetime import datetime
+from datetime import datetime, timedelta
 from . import models
 
 
@@ -68,7 +68,8 @@ class TaskAdmin(admin.ModelAdmin):
             'completed': '#28A745',
             'on_hold': '#DC3545'
         }
-        color = colors.get(obj.status, '#6C757D')
+        status_key = obj.status.lower().replace(' ', '_')
+        color = colors.get(status_key, '#6C757D')
         return format_html(
             '<span style="background-color: {}; color: white; padding: 3px 10px; border-radius: 3px; font-weight: bold;">{}</span>',
             color,
@@ -84,11 +85,17 @@ class TaskAdmin(admin.ModelAdmin):
             'high': '#FF6B6B',
             'critical': '#DC3545'
         }
-        color = colors.get(obj.priority, '#6C757D')
+        priority_value = (obj.priority or '').lower()
+        color = colors.get(priority_value, '#6C757D')
+        priority_display = (
+            obj.get_priority_display().upper()
+            if obj.priority
+            else 'UNASSIGNED'
+        )
         return format_html(
             '<span style="background-color: {}; color: white; padding: 3px 10px; border-radius: 3px; font-weight: bold;">{}</span>',
             color,
-            obj.get_priority_display().upper()
+            priority_display
         )
     priority_badge.short_description = "Priority Badge"
 
@@ -112,7 +119,7 @@ class TaskAdmin(admin.ModelAdmin):
         if deadline_dt < now:
             color = '#DC3545'  # Red for overdue
             status_text = "OVERDUE"
-        elif deadline_dt < now + timezone.timedelta(days=3):
+        elif deadline_dt < now + timedelta(days=3):
             color = '#FFA500'  # Orange for due soon
             status_text = "DUE SOON"
         else:
@@ -135,13 +142,13 @@ class TaskAdmin(admin.ModelAdmin):
 
     def mark_as_completed(self, request, queryset):
         """Bulk action to mark tasks as completed"""
-        updated = queryset.update(status='completed')
+        updated = queryset.update(status='Completed')
         self.message_user(request, f'{updated} task(s) marked as completed.')
     mark_as_completed.short_description = "Mark selected as Completed"
 
     def mark_as_in_progress(self, request, queryset):
         """Bulk action to mark tasks as in progress"""
-        updated = queryset.update(status='in_progress')
+        updated = queryset.update(status='In Progress')
         self.message_user(request, f'{updated} task(s) marked as In Progress.')
     mark_as_in_progress.short_description = "Mark selected as In Progress"
 
@@ -156,4 +163,3 @@ class TaskAdmin(admin.ModelAdmin):
         """Optimize query with select_related and prefetch_related"""
         qs = super().get_queryset(request)
         return qs.select_related('created_by').prefetch_related('assigned_to')
-
