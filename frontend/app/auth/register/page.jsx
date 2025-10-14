@@ -113,7 +113,7 @@ const Page = () => {
                     setUserData({ ...userData, username: e.target.value })
                   }
                   required
-                  className="block w-full text-black pl-10 pr-3 py-3 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition"
+                  className="block w-full text-gray-500  text-black pl-10 pr-3 py-3 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition"
                 />
               </div>
 
@@ -129,7 +129,7 @@ const Page = () => {
                     setUserData({ ...userData, email: e.target.value })
                   }
                   required
-                  className="block text-black w-full pl-10 pr-3 py-3 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition"
+                  className="block text-black text-gray-500  w-full pl-10 pr-3 py-3 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition"
                 />
               </div>
 
@@ -145,7 +145,7 @@ const Page = () => {
                     setUserData({ ...userData, password: e.target.value })
                   }
                   required
-                  className="block w-full  text-black pl-10 pr-12 py-3 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition"
+                  className="block w-full text-gray-500   text-black pl-10 pr-12 py-3 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition"
                 />
                 <button
                   type="button"
