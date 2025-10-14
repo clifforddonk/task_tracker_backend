@@ -5,12 +5,15 @@ from .models import Activity
 
 @admin.register(Activity)
 class ActivityAdmin(admin.ModelAdmin):
-    list_display = ['action_badge', 'get_task_title',
-                    'user', 'short_description', 'timestamp']
+    list_display = ['action_badge', 'get_task_title', 'user',
+                    'get_assigned_to',
+                    'short_description', 'timestamp']
     list_filter = ['action', 'timestamp', 'user']
-    search_fields = ['description', 'task__title', 'user__username']
+    search_fields = ['description', 'task__title', 'user__username',
+                     'task__assigned_user__username']
     readonly_fields = ['task', 'user', 'action', 'description',
-                       'timestamp', 'changes', 'formatted_changes']
+                       'timestamp', 'changes', 'formatted_changes',
+                       'get_assigned_to']
     date_hierarchy = 'timestamp'
     list_per_page = 50
 
@@ -33,6 +36,30 @@ class ActivityAdmin(admin.ModelAdmin):
         return "N/A"
     get_task_title.short_description = "Task"
 
+    def get_assigned_to(self, obj):
+        """Display assigned user with icon"""
+        if obj.task and obj.task.assigned_user:
+            return format_html(
+                '<span title="Assigned To">🎯 {}</span>',
+                obj.task.assigned_user.username
+            )
+        elif obj.changes and 'assigned_user' in obj.changes:
+            assigned = obj.changes['assigned_user']
+            if isinstance(assigned, dict):
+                # Handle old -> new assignment changes
+                if assigned.get('new'):
+                    return format_html(
+                        '<span title="Assigned To">🎯 {}</span>',
+                        assigned['new']
+                    )
+            elif assigned:
+                return format_html(
+                    '<span title="Assigned To">🎯 {}</span>',
+                    assigned
+                )
+        return format_html('<span style="color: #999;">Unassigned</span>')
+    get_assigned_to.short_description = "Assigned To"
+
     def action_badge(self, obj):
         """Display action with colored badge"""
         colors = {
@@ -54,9 +81,11 @@ class ActivityAdmin(admin.ModelAdmin):
 
     def short_description(self, obj):
         """Display truncated description"""
-        if len(obj.description) > 80:
-            return obj.description[:80] + '...'
-        return obj.description
+        description = obj.description
+
+        if len(description) > 100:
+            return description[:100] + '...'
+        return description
     short_description.short_description = "Description"
 
     def formatted_changes(self, obj):
@@ -74,12 +103,20 @@ class ActivityAdmin(admin.ModelAdmin):
         return format_html(html)
     formatted_changes.short_description = "Changes"
 
+    def get_queryset(self, request):
+        """Optimize queryset with select_related"""
+        qs = super().get_queryset(request)
+        return qs.select_related('user', 'task', 'task__assigned_user')
+
     fieldsets = (
         ('Activity Information', {
             'fields': ('action', 'description', 'timestamp')
         }),
+        ('User Information', {
+            'fields': ('user', 'get_assigned_to')
+        }),
         ('Related Objects', {
-            'fields': ('task', 'user')
+            'fields': ('task',)
         }),
         ('Changes', {
             'fields': ('formatted_changes', 'changes'),
