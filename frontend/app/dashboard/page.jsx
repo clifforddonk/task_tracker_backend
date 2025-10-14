@@ -6,6 +6,8 @@ import { getAllTasks } from "@/utils/taskService";
 import TaskCard from "../components/layout/TaskCard";
 import DashboardCard from "../components/layout/DashboardCard";
 import { useUser } from "@/context/UserContext";
+import { Activity as ActivityIcon } from "lucide-react";
+
 
 import {
   LogOut,
@@ -154,15 +156,26 @@ const Page = () => {
             </p>
           </div>
 
-          {/* Create Task Button (Admin Only) */}
-          {user?.role === "admin" && (
-            <Link href="/dashboard/tasks">
-              <button className="flex items-center space-x-2 px-6 py-3 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition shadow-md">
-                <Plus className="h-5 w-5" />
-                <span>Create Task</span>
+          {/* Action Buttons */}
+          <div className="flex gap-3">
+            {/* Activity Log - Available to All Users */}
+            <Link href="/dashboard/activity">
+              <button className="flex items-center space-x-2 px-6 py-3 bg-slate-600 text-white rounded-lg hover:bg-slate-700 transition shadow-md">
+                <ActivityIcon className="h-5 w-5" />
+                <span>Activity Log</span>
               </button>
             </Link>
-          )}
+
+            {/* Create Task Button - Admin Only */}
+            {user?.role === "admin" && (
+              <Link href="/dashboard/tasks">
+                <button className="flex items-center space-x-2 px-6 py-3 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition shadow-md">
+                  <Plus className="h-5 w-5" />
+                  <span>Create Task</span>
+                </button>
+              </Link>
+            )}
+          </div>
         </div>
 
         {/* Dashboard Cards */}

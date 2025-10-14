@@ -68,7 +68,12 @@ MIDDLEWARE = [
 ROOT_URLCONF = "backend.urls"
 
 REST_FRAMEWORK={
-    "NON_FIELD_ERRORS_KEYS":"errors"
+    "NON_FIELD_ERRORS_KEYS":"errors",'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.PageNumberPagination',
+    'PAGE_SIZE': 20,
+    'DEFAULT_FILTER_BACKENDS': [
+        'rest_framework.filters.SearchFilter',
+        'rest_framework.filters.OrderingFilter',
+    ],
 }
 
 
