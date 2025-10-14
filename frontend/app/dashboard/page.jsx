@@ -1,10 +1,11 @@
 "use client";
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { getUserProfile, logout } from "../../utils/authService";
+import { logout } from "../../utils/authService";
 import { getAllTasks } from "@/utils/taskService";
 import TaskCard from "../components/layout/TaskCard";
 import DashboardCard from "../components/layout/DashboardCard";
+import { useUser } from "@/context/UserContext";
 
 import {
   LogOut,
@@ -18,9 +19,10 @@ import {
   Plus,
 } from "lucide-react";
 import Link from "next/link";
+import Loading from "../components/layout/Loading";
 
 const Page = () => {
-  const [user, setUser] = useState(null);
+  const { user, loading } = useUser();
   const [tasks, setTasks] = useState([]);
   const [filteredTasks, setFilteredTasks] = useState([]);
   const [taskCounts, setTaskCounts] = useState({
@@ -29,7 +31,7 @@ const Page = () => {
     completed: 0,
     total: 0,
   });
-  const [loading, setLoading] = useState(true);
+
   const [searchQuery, setSearchQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
   const router = useRouter();
@@ -48,27 +50,24 @@ const Page = () => {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const userData = await getUserProfile();
-        console.log("User data:", userData); // DEBUG
-        setUser(userData);
-
         const tasksData = await getAllTasks();
-        console.log("Tasks data:", tasksData); // DEBUG
+        // console.log("Tasks data:", tasksData); // DEBUG
 
         // Filter tasks based on user role
         let userTasks = tasksData;
-        if (userData.role === "staff") {
+        if (user?.role === "staff") {
           // Staff only sees tasks where they are in the assigned_to array
-          userTasks = tasksData.filter((task) => task.assigned_user);
+          userTasks = tasksData.filter(
+            (task) => task.assigned_user === userData.id
+          );
         }
 
-        console.log("Filtered tasks:", userTasks); // DEBUG
+        // console.log("Filtered tasks:", userTasks); // DEBUG
         setTasks(userTasks);
         setFilteredTasks(userTasks);
         setTaskCounts(calculateTaskCounts(userTasks));
-        setLoading(false);
       } catch (error) {
-        console.error("Error fetching data:", error);
+        // console.error("Error fetching data:", error);
         router.push("/auth/login");
       }
     };
@@ -85,12 +84,14 @@ const Page = () => {
       result = result.filter((task) => task.status === statusFilter);
     }
 
-    // Search by title or description
+    // Search by asigned user name or title
     if (searchQuery) {
       result = result.filter(
         (task) =>
-          task.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-          task.description.toLowerCase().includes(searchQuery.toLowerCase())
+          task.assigned_user_name
+            .toLowerCase()
+            .includes(searchQuery.toLowerCase()) ||
+          task.title.toLowerCase().includes(searchQuery.toLowerCase())
       );
     }
 
@@ -103,11 +104,8 @@ const Page = () => {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-16 w-16 border-b-4 border-indigo-600 mx-auto"></div>
-          <p className="mt-4 text-gray-600">Loading dashboard...</p>
-        </div>
+      <div>
+        <Loading />
       </div>
     );
   }
@@ -207,10 +205,10 @@ const Page = () => {
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
               <input
                 type="text"
-                placeholder="Search tasks by title or description..."
+                placeholder="Search by assigned user or title..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                className="w-full pl-10  text-gray-500 pr-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
               />
             </div>
 
@@ -220,7 +218,7 @@ const Page = () => {
               <select
                 value={statusFilter}
                 onChange={(e) => setStatusFilter(e.target.value)}
-                className="pl-10 pr-8 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 appearance-none bg-white cursor-pointer"
+                className="pl-10 pr-8 text-gray-500 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 appearance-none bg-white cursor-pointer"
               >
                 <option value="all">All Status</option>
                 <option value="pending">Pending</option>
@@ -248,7 +246,11 @@ const Page = () => {
           {filteredTasks.length === 0 ? (
             <div className="text-center py-12">
               <ClipboardList className="h-16 w-16 text-gray-300 mx-auto mb-4" />
-              <p className="text-gray-500 text-lg">No tasks found</p>
+              <p className="text-gray-500 text-lg">
+                {user?.role === "staff"
+                  ? "You Haven't Been Assigned Any Task Yet"
+                  : "You Haven't Created Any Task"}
+              </p>
               <p className="text-gray-400 text-sm mt-1">
                 {searchQuery || statusFilter !== "all"
                   ? "Try adjusting your search or filter"
@@ -267,12 +269,11 @@ const Page = () => {
                     const tasksData = await getAllTasks();
                     let userTasks = tasksData;
                     if (user.role === "staff") {
-                      // Check if user ID is in assigned_to array
                       userTasks = tasksData.filter(
-                        (task) =>
-                          task.assigned_to && task.assigned_to.includes(user.id)
+                        (task) => task.assigned_user === user.id
                       );
                     }
+
                     setTasks(userTasks);
                     setFilteredTasks(userTasks);
                     setTaskCounts(calculateTaskCounts(userTasks));
