@@ -1,13 +1,11 @@
 "use client";
 import { useState, useEffect } from "react";
-import { useRouter } from "next/navigation";
-import { createTask } from "@/utils/taskService";
-import { getAllUsers } from "@/utils/authService";
-import { useUser, loading } from "@/context/UserContext";
+import { useRouter, useParams } from "next/navigation";
+import { getUserProfile, getAllUsers } from "../../../../../utils/authService";
+import { getTaskById, editTask } from "../../../../../utils/taskService";
 import {
   ArrowLeft,
   Save,
-  AlertCircle,
   CheckCircle,
   X,
   User,
@@ -17,16 +15,17 @@ import {
   List,
 } from "lucide-react";
 import Link from "next/link";
-import Loading from "@/app/components/layout/Loading";
 
-const CreateTaskPage = () => {
-  const { user, loading } = useUser();
+const EditTaskPage = () => {
+  const [user, setUser] = useState(null);
   const [users, setUsers] = useState([]);
-
+  const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState(null);
   const [success, setSuccess] = useState(false);
   const router = useRouter();
+  const params = useParams();
+  const taskId = params.id;
 
   const [taskData, setTaskData] = useState({
     title: "",
@@ -40,23 +39,38 @@ const CreateTaskPage = () => {
   useEffect(() => {
     const fetchData = async () => {
       try {
+        const userData = await getUserProfile();
+        setUser(userData);
+
         // Check if user is admin
-        if (user?.role !== "admin") {
+        if (userData.role !== "admin") {
           router.push("/dashboard");
           return;
         }
 
-        // Fetch all users for assignment
+        // Fetch task details
+        const task = await getTaskById(taskId);
+        setTaskData({
+          title: task.title,
+          description: task.description,
+          assigned_user: task.assigned_user,
+          status: task.status,
+          priority: task.priority,
+          deadline: task.deadline,
+        });
+
+        // Fetch all users for reassignment
         const usersData = await getAllUsers();
         setUsers(usersData);
+        setLoading(false);
       } catch (error) {
         console.error("Error:", error);
-        router.push("/auth/login");
+        router.push("/dashboard");
       }
     };
 
     fetchData();
-  }, [router]);
+  }, [router, taskId]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -65,10 +79,9 @@ const CreateTaskPage = () => {
     setSubmitting(true);
 
     try {
-      await createTask(taskData);
+      await editTask(taskId, taskData);
       setSuccess(true);
 
-      // Redirect to dashboard after 2 seconds
       setTimeout(() => {
         router.push("/dashboard");
       }, 2000);
@@ -87,8 +100,11 @@ const CreateTaskPage = () => {
 
   if (loading) {
     return (
-      <div>
-        <Loading />
+      <div className="min-h-screen flex items-center justify-center bg-gray-50">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-16 w-16 border-b-4 border-indigo-600 mx-auto"></div>
+          <p className="mt-4 text-gray-600">Loading...</p>
+        </div>
       </div>
     );
   }
@@ -107,10 +123,8 @@ const CreateTaskPage = () => {
                 </button>
               </Link>
             </div>
-            <h1 className="text-xl font-semibold text-gray-900">
-              Create New Task
-            </h1>
-            <div className="w-32"></div> {/* Spacer for centering */}
+            <h1 className="text-xl font-semibold text-gray-900">Edit Task</h1>
+            <div className="w-32"></div>
           </div>
         </div>
       </nav>
@@ -122,7 +136,7 @@ const CreateTaskPage = () => {
           {success && (
             <div className="bg-green-50 text-green-700 p-4 rounded-lg flex items-center mb-6">
               <CheckCircle className="h-5 w-5 mr-2" />
-              <p>Task created successfully! Redirecting...</p>
+              <p>Task updated successfully! Redirecting...</p>
             </div>
           )}
 
@@ -149,7 +163,7 @@ const CreateTaskPage = () => {
                 onChange={handleChange}
                 required
                 placeholder="Enter task title"
-                className="w-full px-4 py-3 text-gray-500 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
               />
             </div>
 
@@ -166,7 +180,7 @@ const CreateTaskPage = () => {
                 required
                 rows="4"
                 placeholder="Enter task description"
-                className="w-full px-4 py-3 border  text-gray-500  border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
               />
             </div>
 
@@ -181,7 +195,7 @@ const CreateTaskPage = () => {
                 value={taskData.assigned_user}
                 onChange={handleChange}
                 required
-                className="w-full px-4 py-3 text-gray-500  border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
               >
                 <option value="">Select a user</option>
                 {users.map((u) => (
@@ -194,6 +208,23 @@ const CreateTaskPage = () => {
 
             {/* Two columns: Status and Priority */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              {/* Status */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Status
+                </label>
+                <select
+                  name="status"
+                  value={taskData.status}
+                  onChange={handleChange}
+                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                >
+                  <option value="pending">Pending</option>
+                  <option value="in_progress">In Progress</option>
+                  <option value="completed">Completed</option>
+                </select>
+              </div>
+
               {/* Priority */}
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -204,7 +235,7 @@ const CreateTaskPage = () => {
                   name="priority"
                   value={taskData.priority}
                   onChange={handleChange}
-                  className="w-full px-4 py-3 text-gray-500 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
                 >
                   <option value="low">Low</option>
                   <option value="medium">Medium</option>
@@ -225,8 +256,7 @@ const CreateTaskPage = () => {
                 value={taskData.deadline}
                 onChange={handleChange}
                 required
-                min={new Date().toISOString().split("T")[0]}
-                className="w-full text-gray-500 px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
               />
             </div>
 
@@ -246,7 +276,7 @@ const CreateTaskPage = () => {
                 className="flex items-center space-x-2 px-6 py-3 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 <Save className="h-5 w-5" />
-                <span>{submitting ? "Creating..." : "Create Task"}</span>
+                <span>{submitting ? "Updating..." : "Update Task"}</span>
               </button>
             </div>
           </form>
@@ -256,4 +286,4 @@ const CreateTaskPage = () => {
   );
 };
 
-export default CreateTaskPage;
+export default EditTaskPage;

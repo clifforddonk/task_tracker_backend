@@ -106,7 +106,7 @@ const Page = () => {
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   required
-                  className="block w-full pl-10 pr-3 py-3 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition"
+                  className="block text-gray-500 w-full pl-10 pr-3 py-3 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition"
                 />
               </div>
 
@@ -120,7 +120,7 @@ const Page = () => {
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   required
-                  className="block w-full pl-10 pr-12 py-3 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition"
+                  className="block w-full text-gray-500  pl-10 pr-12 py-3 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition"
                 />
                 <button
                   type="button"
@@ -141,7 +141,7 @@ const Page = () => {
                     id="remember-me"
                     name="remember-me"
                     type="checkbox"
-                    className="h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-gray-300 rounded"
+                    className="h-4 w-4 text-gray-500  text-indigo-600 focus:ring-indigo-500 border-gray-300 rounded"
                   />
                   <label
                     htmlFor="remember-me"

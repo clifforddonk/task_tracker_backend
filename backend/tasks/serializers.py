@@ -4,6 +4,7 @@ from users.models import User
 
 class TaskSerializer(serializers.ModelSerializer):
     assigned_user_name = serializers.SerializerMethodField()
+    created_by_username = serializers.CharField(source='created_by.username', read_only=True)
     
     class Meta:
         model = Task
@@ -13,6 +14,8 @@ class TaskSerializer(serializers.ModelSerializer):
             'description', 
             'assigned_user', 
             'assigned_user_name',
+            "created_by",
+            "created_by_username",
             'status', 
             'priority', 
             'deadline', 
