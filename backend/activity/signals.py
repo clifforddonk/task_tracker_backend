@@ -151,7 +151,7 @@ def log_task_deletion(sender, instance, **kwargs):
         del _task_pre_delete_data[instance.pk]
 
 
-@receiver(m2m_changed, sender=Task.assigned_to.through)
+@receiver(m2m_changed, sender=Task.assigned_user.field)
 def log_task_assignment(sender, instance, action, pk_set, **kwargs):
     """Log activity when users are assigned/unassigned to task"""
     if action in ['post_add', 'post_remove']:

@@ -1,29 +1,27 @@
 import axiosInstance from "@/axios/axiosInstance";
 
+// Register a new user
 export const registerUser = async (userData) => {
   try {
     const response = await axiosInstance.post("/auth/signup/", userData);
-    return response.data.message; // "User Created Successfully"
+    return response.data.message;
   } catch (error) {
     if (error.response?.data) {
       const errorData = error.response.data;
 
-      // Check for non_field_errors first (your backend returns this)
       if (errorData.non_field_errors) {
-        throw errorData.non_field_errors[0]; // "Email has already been used"
+        throw errorData.non_field_errors[0];
       }
-      // If there's a general error message
-      if (errorData.message) {
-        throw errorData.message;
+      if (errorData.email) {
+        throw errorData.email[0];
       }
-
-      // If there's a detail field (from DRF)
-      if (errorData.detail) {
-        throw errorData.detail;
+      if (errorData.username) {
+        throw errorData.username[0];
+      }
+      if (errorData.password) {
+        throw errorData.password[0];
       }
     }
-
-    // Fallback error message
     throw "Registration failed! Please try again.";
   }
 };
@@ -40,7 +38,7 @@ export const loginUser = async (email, password) => {
       throw new Error("Invalid response from server!");
     }
 
-    // Store both access and refresh tokens
+    // Store tokens in localStorage
     localStorage.setItem("access_token", response.data.access);
     localStorage.setItem("refresh_token", response.data.refresh);
 
@@ -67,13 +65,11 @@ export const getUserProfile = async () => {
       },
     });
 
-    return response.data; // Returns { id, email, username, role }
+    return response.data;
   } catch (error) {
     if (error.response?.status === 401) {
-      // Token expired, try to refresh
       try {
         await refreshToken();
-        // Retry getting profile
         const token = localStorage.getItem("access_token");
         const response = await axiosInstance.get("/auth/profile/", {
           headers: {
@@ -82,7 +78,6 @@ export const getUserProfile = async () => {
         });
         return response.data;
       } catch (refreshError) {
-        // Refresh failed, logout user
         logout();
         throw new Error("Session expired. Please login again.");
       }
@@ -122,4 +117,19 @@ export const logout = () => {
 // Check if user is authenticated
 export const isAuthenticated = () => {
   return !!localStorage.getItem("access_token");
+};
+
+// Get all users (Admin only - for task assignment)
+export const getAllUsers = async () => {
+  try {
+    const token = localStorage.getItem("access_token");
+    const response = await axiosInstance.get("/auth/users/", {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
+    return response.data;
+  } catch (error) {
+    throw error.response?.data || "Failed to fetch users.";
+  }
 };

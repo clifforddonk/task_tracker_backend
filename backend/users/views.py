@@ -4,6 +4,8 @@ from rest_framework import generics, status
 from rest_framework.response import Response
 from rest_framework.request import Request
 from rest_framework.permissions import IsAuthenticated, AllowAny
+from .models import User
+from .permissions import IsAdmin
 
 class SignUpView(generics.GenericAPIView):
     serializer_class = SignUpSerializer
@@ -33,3 +35,11 @@ class UserProfileView(generics.RetrieveAPIView):
     
     def get_object(self):
         return self.request.user
+    
+class UserListView(generics.ListAPIView):
+    """
+    List all users (Admin only) - for task assignment
+    """
+    queryset = User.objects.all()
+    serializer_class = UserSerializer
+    permission_classes = [IsAdmin]   
