@@ -5,7 +5,7 @@ from .models import Activity
 
 @admin.register(Activity)
 class ActivityAdmin(admin.ModelAdmin):
-    list_display = ['action_badge', 'task',
+    list_display = ['action_badge', 'get_task_title',
                     'user', 'short_description', 'timestamp']
     list_filter = ['action', 'timestamp', 'user']
     search_fields = ['description', 'task__title', 'user__username']
@@ -21,6 +21,17 @@ class ActivityAdmin(admin.ModelAdmin):
     def has_change_permission(self, request, obj=None):
         """Disable editing"""
         return False
+
+    def get_task_title(self, obj):
+        """Display task title or 'Deleted Task' if task is None"""
+        if obj.task:
+            return obj.task.title
+        elif obj.changes and 'title' in obj.changes:
+            return f"{obj.changes['title']} (Deleted)"
+        elif obj.changes and 'task_id' in obj.changes:
+            return f"Task #{obj.changes['task_id']} (Deleted)"
+        return "N/A"
+    get_task_title.short_description = "Task"
 
     def action_badge(self, obj):
         """Display action with colored badge"""

@@ -1,14 +1,15 @@
-from django.db.models.signals import post_save, pre_save, post_delete, m2m_changed
+from django.db.models.signals import post_save, pre_save, post_delete, pre_delete, m2m_changed
 from django.dispatch import receiver
 from tasks.models import Task
 from .models import Activity
 from django.contrib.auth import get_user_model
-from threading import local
+from .middleware import get_current_user
 
 User = get_user_model()
 
-# Store original task data before update
+# Store original task data before update/delete
 _task_pre_save_data = {}
+_task_pre_delete_data = {}
 
 
 @receiver(pre_save, sender=Task)
@@ -28,14 +29,21 @@ def track_task_changes(sender, instance, **kwargs):
             pass
 
 
+@receiver(pre_delete, sender=Task)
+def track_task_deletion(sender, instance, **kwargs):
+    """Store task data before deletion"""
+    _task_pre_delete_data[instance.pk] = {
+        'title': instance.title,
+        'description': instance.description,
+        'status': instance.status,
+        'priority': instance.priority,
+    }
+
+
 @receiver(post_save, sender=Task)
 def log_task_activity(sender, instance, created, **kwargs):
     """Log activity when task is created or updated"""
-    user = None
-
-    # Try to get user from thread local storage (set in views)
-    _thread_locals = local()
-    user = getattr(_thread_locals, 'user', None)
+    user = get_current_user()
 
     if not user and instance.created_by:
         user = instance.created_by
@@ -46,7 +54,7 @@ def log_task_activity(sender, instance, created, **kwargs):
             task=instance,
             user=user,
             action='created',
-            description=f'Task "{instance.title}" was created',
+            description=f'Task "{instance.title}" was created by {user.username if user else "Unknown"}',
             changes={
                 'status': instance.status,
                 'priority': instance.priority,
@@ -107,7 +115,7 @@ def log_task_activity(sender, instance, created, **kwargs):
                     task=instance,
                     user=user,
                     action=action,
-                    description=f'Task "{instance.title}": {", ".join(description_parts)}',
+                    description=f'Task "{instance.title}" updated by {user.username if user else "Unknown"}: {", ".join(description_parts)}',
                     changes=changes
                 )
 
@@ -119,26 +127,35 @@ def log_task_activity(sender, instance, created, **kwargs):
 @receiver(post_delete, sender=Task)
 def log_task_deletion(sender, instance, **kwargs):
     """Log activity when task is deleted"""
-    from threading import local
-    _thread_locals = local()
-    user = getattr(_thread_locals, 'user', None)
+    user = get_current_user()
+
+    # Get stored task data from pre_delete
+    task_data = _task_pre_delete_data.get(instance.pk, {})
+    task_title = task_data.get('title', f'Task #{instance.pk}')
 
     Activity.objects.create(
-        task=None,
+        task=None,  # Task is deleted, so set to None
         user=user,
         action='deleted',
-        description=f'Task "{instance.title}" was deleted',
-        changes={'task_id': instance.pk}
+        description=f'Task "{task_title}" was deleted by {user.username if user else "Unknown"}',
+        changes={
+            'task_id': instance.pk,
+            'title': task_title,
+            'status': task_data.get('status'),
+            'priority': task_data.get('priority'),
+        }
     )
+
+    # Clean up stored data
+    if instance.pk in _task_pre_delete_data:
+        del _task_pre_delete_data[instance.pk]
 
 
 @receiver(m2m_changed, sender=Task.assigned_to.through)
 def log_task_assignment(sender, instance, action, pk_set, **kwargs):
     """Log activity when users are assigned/unassigned to task"""
     if action in ['post_add', 'post_remove']:
-        from threading import local
-        _thread_locals = local()
-        user = getattr(_thread_locals, 'user', None)
+        user = get_current_user()
 
         if pk_set:
             users = User.objects.filter(pk__in=pk_set)
@@ -149,7 +166,7 @@ def log_task_assignment(sender, instance, action, pk_set, **kwargs):
                     task=instance,
                     user=user,
                     action='assigned',
-                    description=f'{user_names} assigned to task "{instance.title}"',
+                    description=f'{user_names} assigned to task "{instance.title}" by {user.username if user else "Unknown"}',
                     changes={'assigned_users': list(pk_set)}
                 )
             elif action == 'post_remove':
@@ -157,6 +174,6 @@ def log_task_assignment(sender, instance, action, pk_set, **kwargs):
                     task=instance,
                     user=user,
                     action='unassigned',
-                    description=f'{user_names} unassigned from task "{instance.title}"',
+                    description=f'{user_names} unassigned from task "{instance.title}" by {user.username if user else "Unknown"}',
                     changes={'unassigned_users': list(pk_set)}
                 )
