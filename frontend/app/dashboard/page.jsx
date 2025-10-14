@@ -1,14 +1,11 @@
 "use client";
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import {
-  getUserProfile,
-  logout,
-  isAuthenticated,
-} from "../../utils/authService";
-import { getTasks, getTaskCounts } from "../../utils/mockData";
+import { getUserProfile, logout } from "../../utils/authService";
+import { getAllTasks } from "@/utils/taskService";
 import TaskCard from "../components/layout/TaskCard";
 import DashboardCard from "../components/layout/DashboardCard";
+
 import {
   LogOut,
   User,
@@ -18,8 +15,9 @@ import {
   ClipboardList,
   Search,
   Filter,
+  Plus,
 } from "lucide-react";
-import Loading from "../components/layout/Loading";
+import Link from "next/link";
 
 const Page = () => {
   const [user, setUser] = useState(null);
@@ -36,34 +34,38 @@ const Page = () => {
   const [statusFilter, setStatusFilter] = useState("all");
   const router = useRouter();
 
-  useEffect(() => {
-    // Check if user is authenticated
-    if (!isAuthenticated()) {
-      router.push("/auth/login");
-      return;
-    }
+  // Calculate task counts
+  const calculateTaskCounts = (tasksList) => {
+    return {
+      pending: tasksList.filter((task) => task.status === "pending").length,
+      in_progress: tasksList.filter((task) => task.status === "in_progress")
+        .length,
+      completed: tasksList.filter((task) => task.status === "completed").length,
+      total: tasksList.length,
+    };
+  };
 
-    // Fetch user profile and tasks
+  useEffect(() => {
     const fetchData = async () => {
       try {
         const userData = await getUserProfile();
+        console.log("User data:", userData); // DEBUG
         setUser(userData);
 
-        // Get tasks (using mock data for now)
-        const tasksData = await getTasks();
+        const tasksData = await getAllTasks();
+        console.log("Tasks data:", tasksData); // DEBUG
 
         // Filter tasks based on user role
         let userTasks = tasksData;
         if (userData.role === "staff") {
-          // Staff only sees their assigned tasks
-          userTasks = tasksData.filter(
-            (task) => task.assigned_user === userData.id
-          );
+          // Staff only sees tasks where they are in the assigned_to array
+          userTasks = tasksData.filter((task) => task.assigned_user);
         }
 
+        console.log("Filtered tasks:", userTasks); // DEBUG
         setTasks(userTasks);
         setFilteredTasks(userTasks);
-        setTaskCounts(getTaskCounts(userTasks));
+        setTaskCounts(calculateTaskCounts(userTasks));
         setLoading(false);
       } catch (error) {
         console.error("Error fetching data:", error);
@@ -101,8 +103,11 @@ const Page = () => {
 
   if (loading) {
     return (
-      <div>
-        <Loading/>
+      <div className="min-h-screen flex items-center justify-center bg-gray-50">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-16 w-16 border-b-4 border-indigo-600 mx-auto"></div>
+          <p className="mt-4 text-gray-600">Loading dashboard...</p>
+        </div>
       </div>
     );
   }
@@ -141,13 +146,25 @@ const Page = () => {
       {/* Main Content */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Welcome Section */}
-        <div className="mb-8">
-          <h2 className="text-3xl font-bold text-gray-900">
-            Welcome back, {user?.username}! 👋
-          </h2>
-          <p className="text-gray-600 mt-1">
-            Here's what's happening with your tasks today.
-          </p>
+        <div className="mb-8 flex items-center justify-between">
+          <div>
+            <h2 className="text-3xl font-bold text-gray-900">
+              Welcome back, {user?.username}! 👋
+            </h2>
+            <p className="text-gray-600 mt-1">
+              Here's what's happening with your tasks today.
+            </p>
+          </div>
+
+          {/* Create Task Button (Admin Only) */}
+          {user?.role === "admin" && (
+            <Link href="/dashboard/tasks">
+              <button className="flex items-center space-x-2 px-6 py-3 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition shadow-md">
+                <Plus className="h-5 w-5" />
+                <span>Create Task</span>
+              </button>
+            </Link>
+          )}
         </div>
 
         {/* Dashboard Cards */}
@@ -241,7 +258,26 @@ const Page = () => {
           ) : (
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
               {filteredTasks.map((task) => (
-                <TaskCard key={task.id} task={task} />
+                <TaskCard
+                  key={task.id}
+                  task={task}
+                  currentUser={user}
+                  onUpdate={async () => {
+                    // Refresh tasks after update
+                    const tasksData = await getAllTasks();
+                    let userTasks = tasksData;
+                    if (user.role === "staff") {
+                      // Check if user ID is in assigned_to array
+                      userTasks = tasksData.filter(
+                        (task) =>
+                          task.assigned_to && task.assigned_to.includes(user.id)
+                      );
+                    }
+                    setTasks(userTasks);
+                    setFilteredTasks(userTasks);
+                    setTaskCounts(calculateTaskCounts(userTasks));
+                  }}
+                />
               ))}
             </div>
           )}

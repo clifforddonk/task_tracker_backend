@@ -1,6 +1,13 @@
+"use client";
+import { useState } from "react";
 import { Calendar, User, AlertCircle } from "lucide-react";
+import { updateTaskStatus } from "../../../utils/taskService";
+import { getUserProfile } from "@/utils/authService";
 
-const TaskCard = ({ task }) => {
+const TaskCard = ({ task, onUpdate, currentUser }) => {
+  const [updating, setUpdating] = useState(false);
+  const [error, setError] = useState(null);
+
   // Status badge colors
   const statusColors = {
     pending: "bg-yellow-100 text-yellow-800",
@@ -20,6 +27,28 @@ const TaskCard = ({ task }) => {
     medium: "bg-yellow-500",
     high: "bg-red-500",
   };
+
+  const handleStatusChange = async (e) => {
+    const newStatus = e.target.value;
+    setError(null);
+    setUpdating(true);
+
+    try {
+      await updateTaskStatus(task.id, newStatus);
+      // Call parent component to refresh data
+      if (onUpdate) {
+        onUpdate();
+      }
+    } catch (err) {
+      setError(err);
+    } finally {
+      setUpdating(false);
+    }
+    window.location.reload();
+  };
+
+  // Check if current user can update this task
+  const canUpdateStatus = task.assigned_user === currentUser?.id;
 
   return (
     <div className="bg-white rounded-lg shadow-md p-5 hover:shadow-lg transition border-l-4 border-indigo-500">
@@ -46,24 +75,54 @@ const TaskCard = ({ task }) => {
         </div>
       </div>
 
+      {/* Error Message */}
+      {error && (
+        <div className="mb-3 p-2 bg-red-50 text-red-600 text-xs rounded">
+          {error}
+        </div>
+      )}
+
       <div className="flex items-center justify-between mt-4 pt-3 border-t border-gray-100">
         <div className="flex items-center space-x-4 text-sm text-gray-500">
-          <div className="flex items-center">
-            <User className="h-4 w-4 mr-1" />
-            <span>{task.assigned_user_name}</span>
-          </div>
-          <div className="flex items-center">
-            <Calendar className="h-4 w-4 mr-1" />
-            <span>{new Date(task.deadline).toLocaleDateString()}</span>
+          <div className="flex space-x-4 justify-between">
+            <div>
+              <span>
+                Assigned to:{" "}
+                {task.assigned_user === currentUser?.id
+                  ? "Me"
+                  : task.assigned_user_name}
+              </span>
+            </div>
+            <div className="flex">
+              <Calendar className="h-4 w-4 mr-1" />
+              <span>{new Date(task.deadline).toLocaleDateString()}</span>
+            </div>
           </div>
         </div>
-        <span
-          className={`px-3 py-1 rounded-full text-xs font-medium ${
-            statusColors[task.status]
-          }`}
-        >
-          {task.status.replace("_", " ")}
-        </span>
+
+        {/* Status - Dropdown if user can update, badge otherwise */}
+        {canUpdateStatus ? (
+          <select
+            value={task.status}
+            onChange={handleStatusChange}
+            disabled={updating}
+            className={`px-3 py-1 rounded-full text-xs font-medium border-0 cursor-pointer focus:outline-none focus:ring-2 focus:ring-indigo-500 ${
+              statusColors[task.status]
+            } ${updating ? "opacity-50" : ""}`}
+          >
+            <option value="pending">Pending</option>
+            <option value="in_progress">In Progress</option>
+            <option value="completed">Completed</option>
+          </select>
+        ) : (
+          <span
+            className={`px-3 py-1 rounded-full text-xs font-medium ${
+              statusColors[task.status]
+            }`}
+          >
+            {task.status.replace("_", " ")}
+          </span>
+        )}
       </div>
     </div>
   );
