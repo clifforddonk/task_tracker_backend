@@ -6,6 +6,12 @@ from rest_framework.request import Request
 from rest_framework.permissions import IsAuthenticated, AllowAny
 from .models import User
 from .permissions import IsAdmin
+from rest_framework.decorators import api_view, permission_classes
+from rest_framework.permissions import IsAuthenticated
+from rest_framework.response import Response
+from rest_framework import status
+from .serializers import UserSerializer
+
 
 class SignUpView(generics.GenericAPIView):
     serializer_class = SignUpSerializer
@@ -24,7 +30,7 @@ class SignUpView(generics.GenericAPIView):
             }
 
             return Response(data=response, status=status.HTTP_201_CREATED)
-        
+
         return Response(data=serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
@@ -32,14 +38,23 @@ class SignUpView(generics.GenericAPIView):
 class UserProfileView(generics.RetrieveAPIView):
     serializer_class = UserSerializer
     permission_classes = [IsAuthenticated]
-    
+
     def get_object(self):
         return self.request.user
-    
+
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def get_user_profile(request):
+    """Get the current authenticated user's profile"""
+    serializer = UserSerializer(request.user)
+    return Response(serializer.data, status=status.HTTP_200_OK)
+
+
 class UserListView(generics.ListAPIView):
     """
     List all users (Admin only) - for task assignment
     """
     queryset = User.objects.all()
     serializer_class = UserSerializer
-    permission_classes = [IsAdmin]   
+    permission_classes = [IsAdmin]
