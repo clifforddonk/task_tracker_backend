@@ -21,6 +21,7 @@ export const UserProvider = ({ children }) => {
         // Set the token in axios headers
         axiosInstance.defaults.headers.common["Authorization"] = `Bearer ${token}`;
 
+        // Changed to /api/users/profile/ to match Django URL patterns
         const response = await axiosInstance.get("/api/users/profile/");
         setUser(response.data);
       } catch (error) {
@@ -40,8 +41,21 @@ export const UserProvider = ({ children }) => {
     fetchUser();
   }, []);
 
+  const refreshUser = async () => {
+    try {
+      const token = localStorage.getItem("access_token");
+      if (!token) return;
+      
+      axiosInstance.defaults.headers.common["Authorization"] = `Bearer ${token}`;
+      const response = await axiosInstance.get("/api/users/profile/");
+      setUser(response.data);
+    } catch (error) {
+      console.error("Error refreshing user:", error);
+    }
+  };
+
   return (
-    <UserContext.Provider value={{ user, setUser, loading }}>
+    <UserContext.Provider value={{ user, setUser, loading, refreshUser }}>
       {children}
     </UserContext.Provider>
   );
