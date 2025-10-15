@@ -25,13 +25,15 @@ const Page = () => {
     setIsLoading(true);
 
     try {
-      const result = await loginUser(email, password);
-      setMessage(result);
-      setIsLoading(false);
+      await loginUser(email, password);
+      setMessage("Login successful! Redirecting...");
 
+      // Wait a bit longer and use router.push directly
       setTimeout(() => {
         router.push("/dashboard");
-      }, 1500);
+        // Force reload to ensure UserContext picks up the new token
+        window.location.href = "/dashboard";
+      }, 500);
     } catch (err) {
       setError(err);
       setIsLoading(false);
