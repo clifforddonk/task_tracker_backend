@@ -9,5 +9,5 @@ urlpatterns = [
     path("auth/", include("users.urls")),
     path('api/', include('activity.urls')),
     path('api/tasks/', include('tasks.urls')),
-    path('api/users/', include('users.urls')),  # Add this line
+    path('api/users/', include('users.urls')),
 ]
