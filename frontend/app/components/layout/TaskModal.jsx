@@ -113,9 +113,9 @@ const TaskModal = ({ task, currentUser, onClose, onUpdate }) => {
             <div className="flex items-center space-x-2">
               <User className="h-5 w-5 text-gray-400" />
               <div>
-                <p className="text-xs text-gray-500">Assigned To</p>
+                <p className="text-xs text-gray-500">Assigned By</p>
                 <p className="text-sm font-medium text-gray-900">
-                  {task.assigned_user_name || "Unassigned"}
+                  {task.created_by_username || "Unassigned"}
                 </p>
               </div>
             </div>
@@ -124,9 +124,9 @@ const TaskModal = ({ task, currentUser, onClose, onUpdate }) => {
             <div className="flex items-center space-x-2">
               <Calendar className="h-5 w-5 text-gray-400" />
               <div>
-                <p className="text-xs text-gray-500">Deadline</p>
+                <p className="text-xs text-gray-500">Assigned On</p>
                 <p className="text-sm font-medium text-gray-900">
-                  {new Date(task.deadline).toLocaleDateString()}
+                  {new Date(task.created_at).toLocaleDateString()}
                 </p>
               </div>
             </div>
@@ -150,9 +150,9 @@ const TaskModal = ({ task, currentUser, onClose, onUpdate }) => {
             <div className="flex items-center space-x-2">
               <Clock className="h-5 w-5 text-gray-400" />
               <div>
-                <p className="text-xs text-gray-500">Created</p>
+                <p className="text-xs text-gray-500">Deadline</p>
                 <p className="text-sm font-medium text-gray-900">
-                  {new Date(task.created_at).toLocaleDateString()}
+                  {new Date(task.deadline).toLocaleDateString()}
                 </p>
               </div>
             </div>
