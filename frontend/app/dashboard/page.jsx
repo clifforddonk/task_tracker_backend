@@ -9,6 +9,9 @@ import DashboardCard from "../components/layout/DashboardCard";
 import { useUser } from "@/context/UserContext";
 import { Activity as ActivityIcon } from "lucide-react";
 import ActivityCard from "../components/ActivityLog/ActivityCard";
+import Navigation from "../components/layout/Navigation";
+import WelcomeSection from "../components/layout/WelcomeSection";
+import SearchFilter from "../components/layout/SearchFilter";
 
 import {
   LogOut,
@@ -131,45 +134,6 @@ const Page = () => {
     logout();
   };
 
-  const getActivityIcon = (action) => {
-    switch (action) {
-      case "created":
-        return "➕";
-      case "updated":
-        return "✏️";
-      case "deleted":
-        return "🗑️";
-      case "completed":
-        return "✅";
-      default:
-        return "📝";
-    }
-  };
-
-  const formatTimestamp = (timestamp) => {
-    const date = new Date(timestamp);
-    const now = new Date();
-    const diffInHours = Math.floor((now - date) / (1000 * 60 * 60));
-
-    if (diffInHours < 1) {
-      const diffInMinutes = Math.floor((now - date) / (1000 * 60));
-      return `${diffInMinutes} minute${
-        diffInMinutes !== 1 ? "s" : ""
-      } ago`.replace("NaN", "0 minutes ago");
-    } else if (diffInHours < 24) {
-      return `${diffInHours} hour${diffInHours !== 1 ? "s" : ""} ago`.replace(
-        "NaN",
-        "0 hours ago"
-      );
-    } else {
-      const diffInDays = Math.floor(diffInHours / 24);
-      return `${diffInDays} day${diffInDays !== 1 ? "s" : ""} ago`.replace(
-        "NaN",
-        "0 days ago"
-      );
-    }
-  };
-
   if (loading) {
     return <Loading />;
   }
@@ -180,63 +144,14 @@ const Page = () => {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      {/* Navigation Bar */}
-      <nav className="bg-white shadow-sm sticky top-0 z-10">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center h-16">
-            <div className="flex items-center">
-              <h1 className="text-2xl font-bold text-indigo-600">
-                TaskTracker
-              </h1>
-            </div>
-            <div className="flex items-center space-x-4">
-              <div className="flex items-center space-x-2 text-gray-700">
-                <User className="h-5 w-5" />
-                <span className="font-medium">{user?.username}</span>
-                <span className="text-sm text-gray-500 capitalize">
-                  ({user?.role})
-                </span>
-              </div>
-              <button
-                onClick={handleLogout}
-                className="flex items-center space-x-2 px-4 py-2 text-red-600 hover:bg-red-50 rounded-lg transition"
-              >
-                <LogOut className="h-5 w-5" />
-                <span>Logout</span>
-              </button>
-            </div>
-          </div>
-        </div>
-      </nav>
+      <Navigation user={user} onLogout={handleLogout} />
 
-      {/* Main Content */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {/* Welcome Section */}
-        <div className="mb-8 flex items-center justify-between">
-          <div>
-            <h2 className="text-3xl font-bold text-gray-900">
-              Welcome back, {user?.username}! 👋
-            </h2>
-            <p className="text-gray-600 mt-1">
-              Here's what's happening with your tasks today.
-            </p>
-          </div>
+        <WelcomeSection
+          username={user?.username}
+          isAdmin={user?.role === "admin"}
+        />
 
-          {/* Action Buttons */}
-          <div className="flex gap-3">
-            {/* Create Task Button - Admin Only */}
-            {user?.role === "admin" && (
-              <Link href="/dashboard/tasks">
-                <button className="flex items-center space-x-2 px-6 py-3 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition shadow-md">
-                  <Plus className="h-5 w-5" />
-                  <span>Create Task</span>
-                </button>
-              </Link>
-            )}
-          </div>
-        </div>
-
-        {/* Dashboard Cards */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
           <DashboardCard
             title="Total Tasks"
@@ -268,37 +183,12 @@ const Page = () => {
           />
         </div>
 
-        {/* Search and Filter Section */}
-        <div className="bg-white rounded-xl shadow-md p-6 mb-6">
-          <div className="flex flex-col md:flex-row gap-4">
-            {/* Search */}
-            <div className="flex-1 relative">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
-              <input
-                type="text"
-                placeholder="Search by assigned user or title..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full pl-10  text-gray-500 pr-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
-              />
-            </div>
-
-            {/* Status Filter */}
-            <div className="relative">
-              <Filter className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
-              <select
-                value={statusFilter}
-                onChange={(e) => setStatusFilter(e.target.value)}
-                className="pl-10 pr-8 text-gray-500 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 appearance-none bg-white cursor-pointer"
-              >
-                <option value="all">All Status</option>
-                <option value="pending">Pending</option>
-                <option value="in_progress">In Progress</option>
-                <option value="completed">Completed</option>
-              </select>
-            </div>
-          </div>
-        </div>
+        <SearchFilter
+          searchQuery={searchQuery}
+          statusFilter={statusFilter}
+          onSearchChange={(e) => setSearchQuery(e.target.value)}
+          onStatusChange={(e) => setStatusFilter(e.target.value)}
+        />
 
         {/* Tasks List */}
         <div className="bg-white rounded-xl shadow-md p-6">

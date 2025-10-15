@@ -1,22 +1,10 @@
 "use client";
 import { useState } from "react";
-import { Calendar, User } from "lucide-react";
+import { User } from "lucide-react";
 import TaskModal from "./TaskModal";
 
 const TaskCard = ({ task, onUpdate, currentUser }) => {
   const [showModal, setShowModal] = useState(false);
-
-  const priorityDots = {
-    low: "bg-green-500",
-    medium: "bg-yellow-500",
-    high: "bg-red-500",
-  };
-
-  const priorityColors = {
-    low: "text-green-600",
-    medium: "text-yellow-600",
-    high: "text-red-600",
-  };
 
   const statusColors = {
     pending: "bg-yellow-100 text-yellow-800",
@@ -24,48 +12,30 @@ const TaskCard = ({ task, onUpdate, currentUser }) => {
     completed: "bg-green-100 text-green-800",
   };
 
+  const priorityBorders = {
+    low: "border-l-green-500",
+    medium: "border-l-yellow-500",
+    high: "border-l-red-500",
+  };
+
   return (
     <>
       <div
         onClick={() => setShowModal(true)}
-        className="bg-white rounded-lg shadow-md p-5 hover:shadow-lg transition border-l-4 border-indigo-500 cursor-pointer"
+        className={`bg-white rounded-lg shadow-md p-4 hover:shadow-lg transition cursor-pointer border-l-4 ${
+          priorityBorders[task.priority]
+        }`}
       >
-        <div className="flex items-start justify-between mb-3">
+        <div className="flex items-center justify-between">
           <div className="flex-1">
-            <h3 className="text-lg font-semibold text-gray-900 mb-1">
-              {task.title}
-            </h3>
-            <p className="text-gray-600 text-sm line-clamp-2">
-              {task.description}
-            </p>
-          </div>
-          <div className="flex items-center ml-3">
-            <span
-              className={`w-3 h-3 rounded-full ${priorityDots[task.priority]}`}
-            ></span>
-            <span
-              className={`ml-1 text-xs font-medium ${
-                priorityColors[task.priority]
-              } uppercase`}
-            >
-              {task.priority}
-            </span>
-          </div>
-        </div>
-
-        <div className="flex items-center justify-between mt-4 pt-3 border-t border-gray-100">
-          <div className="flex items-center space-x-4 text-sm text-gray-500">
-            <div className="flex items-center">
+            <h3 className="font-medium text-gray-900">{task.title}</h3>
+            <div className="flex items-center text-sm text-gray-500 mt-1">
               <User className="h-4 w-4 mr-1" />
               <span>{task.assigned_user_name || "Unassigned"}</span>
             </div>
-            <div className="flex items-center">
-              <Calendar className="h-4 w-4 mr-1" />
-              <span>{new Date(task.deadline).toLocaleDateString()}</span>
-            </div>
           </div>
           <span
-            className={`px-3 py-1 rounded-full text-xs font-medium ${
+            className={`px-2 py-1 rounded-full text-xs font-medium ${
               statusColors[task.status]
             }`}
           >
@@ -74,7 +44,6 @@ const TaskCard = ({ task, onUpdate, currentUser }) => {
         </div>
       </div>
 
-      {/* Modal */}
       {showModal && (
         <TaskModal
           task={task}
