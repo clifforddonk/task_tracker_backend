@@ -8,7 +8,6 @@ import DashboardCard from "../components/layout/DashboardCard";
 import { useUser } from "@/context/UserContext";
 import { Activity as ActivityIcon } from "lucide-react";
 
-
 import {
   LogOut,
   User,
@@ -33,7 +32,6 @@ const Page = () => {
     completed: 0,
     total: 0,
   });
-
   const [searchQuery, setSearchQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
   const router = useRouter();
@@ -49,15 +47,25 @@ const Page = () => {
     };
   };
 
+  // Check authentication first
+  useEffect(() => {
+    const token = localStorage.getItem("access_token");
+    if (!token && !loading) {
+      router.push("/auth/login");
+    }
+  }, [loading, router]);
+
+  // Fetch tasks after user is loaded
   useEffect(() => {
     const fetchData = async () => {
+      if (!user) return;
+
       try {
         const tasksData = await getAllTasks();
 
         // Filter tasks based on user role
         let userTasks = tasksData;
         if (user?.role === "staff") {
-          // ✅ FIX: Change userData.id to user.id
           userTasks = tasksData.filter(
             (task) => task.assigned_user === user.id
           );
@@ -67,12 +75,16 @@ const Page = () => {
         setFilteredTasks(userTasks);
         setTaskCounts(calculateTaskCounts(userTasks));
       } catch (error) {
-        router.push("/auth/login");
+        console.error("Error fetching tasks:", error);
+        // Only redirect on auth errors
+        if (error.response?.status === 401) {
+          router.push("/auth/login");
+        }
       }
     };
 
     fetchData();
-  }, [router, user]); // Added user as dependency
+  }, [user]); // Only depend on user
 
   // Handle search and filter
   useEffect(() => {
@@ -83,7 +95,7 @@ const Page = () => {
       result = result.filter((task) => task.status === statusFilter);
     }
 
-    // Search by asigned user name or title
+    // Search by assigned user name or title
     if (searchQuery) {
       result = result.filter(
         (task) =>
@@ -102,11 +114,11 @@ const Page = () => {
   };
 
   if (loading) {
-    return (
-      <div>
-        <Loading />
-      </div>
-    );
+    return <Loading />;
+  }
+
+  if (!user) {
+    return null; // Will redirect via useEffect
   }
 
   return (
