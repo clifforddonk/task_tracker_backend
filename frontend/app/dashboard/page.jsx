@@ -1,4 +1,5 @@
 "use client";
+
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { logout } from "../../utils/authService";
@@ -21,6 +22,7 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 import Loading from "../components/layout/Loading";
+import { getAllActivities } from "@/utils/activityService";
 
 const Page = () => {
   const { user, loading } = useUser();
@@ -34,6 +36,8 @@ const Page = () => {
   });
   const [searchQuery, setSearchQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
+  const [activities, setActivities] = useState([]);
+  const [loadingActivities, setLoadingActivities] = useState(true);
   const router = useRouter();
 
   // Calculate task counts
@@ -55,12 +59,13 @@ const Page = () => {
     }
   }, [loading, router]);
 
-  // Fetch tasks after user is loaded
+  // Fetch tasks and activities after user is loaded
   useEffect(() => {
     const fetchData = async () => {
       if (!user) return;
 
       try {
+        // Fetch tasks
         const tasksData = await getAllTasks();
 
         // Filter tasks based on user role
@@ -74,12 +79,24 @@ const Page = () => {
         setTasks(userTasks);
         setFilteredTasks(userTasks);
         setTaskCounts(calculateTaskCounts(userTasks));
+
+        // Fetch activities
+        const activitiesData = await getAllActivities();
+
+        // Sort activities by date (most recent first) and get top 3
+        const sortedActivities = activitiesData
+          .sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp))
+          .slice(0, 3);
+
+        setActivities(sortedActivities);
       } catch (error) {
-        console.error("Error fetching tasks:", error);
+        console.error("Error fetching data:", error);
         // Only redirect on auth errors
         if (error.response?.status === 401) {
           router.push("/auth/login");
         }
+      } finally {
+        setLoadingActivities(false);
       }
     };
 
@@ -111,6 +128,45 @@ const Page = () => {
 
   const handleLogout = () => {
     logout();
+  };
+
+  const getActivityIcon = (action) => {
+    switch (action) {
+      case "created":
+        return "➕";
+      case "updated":
+        return "✏️";
+      case "deleted":
+        return "🗑️";
+      case "completed":
+        return "✅";
+      default:
+        return "📝";
+    }
+  };
+
+  const formatTimestamp = (timestamp) => {
+    const date = new Date(timestamp);
+    const now = new Date();
+    const diffInHours = Math.floor((now - date) / (1000 * 60 * 60));
+
+    if (diffInHours < 1) {
+      const diffInMinutes = Math.floor((now - date) / (1000 * 60));
+      return `${diffInMinutes} minute${
+        diffInMinutes !== 1 ? "s" : ""
+      } ago`.replace("NaN", "0 minutes ago");
+    } else if (diffInHours < 24) {
+      return `${diffInHours} hour${diffInHours !== 1 ? "s" : ""} ago`.replace(
+        "NaN",
+        "0 hours ago"
+      );
+    } else {
+      const diffInDays = Math.floor(diffInHours / 24);
+      return `${diffInDays} day${diffInDays !== 1 ? "s" : ""} ago`.replace(
+        "NaN",
+        "0 days ago"
+      );
+    }
   };
 
   if (loading) {
@@ -301,6 +357,80 @@ const Page = () => {
                     setTaskCounts(calculateTaskCounts(userTasks));
                   }}
                 />
+              ))}
+            </div>
+          )}
+        </div>
+
+        {/* Recent Activity Section */}
+        <div className="bg-white rounded-xl shadow-md p-6 mt-8">
+          <div className="flex justify-between items-center mb-6">
+            <h2 className="text-2xl font-bold text-gray-900">Recent Activity</h2>
+            <button
+              onClick={() => router.push("/dashboard/activity")}
+              className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors duration-200 flex items-center gap-2"
+            >
+              <span>View More</span>
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                className="h-5 w-5"
+                viewBox="0 0 20 20"
+                fill="currentColor"
+              >
+                <path
+                  fillRule="evenodd"
+                  d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z"
+                  clipRule="evenodd"
+                />
+              </svg>
+            </button>
+          </div>
+
+          {/* Activity List */}
+          {activities.length === 0 ? (
+            <div className="text-center py-12">
+              <p className="text-gray-500 text-lg">No recent activity</p>
+              <p className="text-gray-400 text-sm mt-2">
+                Start creating and updating tasks to see activity here
+              </p>
+            </div>
+          ) : (
+            <div className="space-y-4">
+              {activities.map((activity) => (
+                <div
+                  key={activity.id}
+                  className="flex items-start gap-4 p-4 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors duration-200"
+                >
+                  <div className="text-3xl">
+                    {getActivityIcon(activity.action)}
+                  </div>
+                  <div className="flex-1">
+                    <div className="flex items-start justify-between">
+                      <div>
+                        <p className="font-semibold text-gray-900">
+                          {activity.user_name || "Unknown User"}
+                        </p>
+                        <p className="text-gray-700 mt-1">
+                          <span className="font-medium capitalize">
+                            {activity.action}
+                          </span>{" "}
+                          task:{" "}
+                          <span className="text-blue-600">
+                            {activity.task_title}
+                          </span>
+                        </p>
+                        {activity.description && (
+                          <p className="text-gray-600 text-sm mt-1">
+                            {activity.description}
+                          </p>
+                        )}
+                      </div>
+                      <span className="text-sm text-gray-500 whitespace-nowrap ml-4">
+                        {formatTimestamp(activity.timestamp)}
+                      </span>
+                    </div>
+                  </div>
+                </div>
               ))}
             </div>
           )}
