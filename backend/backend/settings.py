@@ -10,6 +10,7 @@ For the full list of settings and their values, see
 https://docs.djangoproject.com/en/5.2/ref/settings/
 """
 
+from datetime import timedelta
 from pathlib import Path
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
@@ -37,21 +38,21 @@ INSTALLED_APPS = [
     "django.contrib.sessions",
     "django.contrib.messages",
     "django.contrib.staticfiles",
-    #middlewares and  authentication
+    # middlewares and  authentication
 
 
     "rest_framework",
 
-    #apps
+    # apps
     "tasks",
     "activity",
-    
+
     "users",
     'rest_framework_simplejwt',
     "corsheaders",
 ]
 
-AUTH_USER_MODEL =  "users.User"
+AUTH_USER_MODEL = "users.User"
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
@@ -62,7 +63,7 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
-    'activity.middleware.ActivityMiddleware',  
+    'activity.middleware.ActivityMiddleware',
 ]
 
 ROOT_URLCONF = "backend.urls"
@@ -155,14 +156,17 @@ CORS_ALLOWED_ORIGINS = [
 
 # REST Framework Settings
 REST_FRAMEWORK = {
-    'DEFAULT_AUTHENTICATION_CLASSES': (
-        'rest_framework_simplejwt.authentication.JWTAuthentication',
-    ),
+    'DEFAULT_AUTHENTICATION_CLASSES': [
+        'rest_framework.authentication.TokenAuthentication',
+        'rest_framework.authentication.SessionAuthentication',  # Add this
+    ],
+    'DEFAULT_PERMISSION_CLASSES': [
+        'rest_framework.permissions.IsAuthenticated',
+    ],
 }
 
 
 # JWT Settings
-from datetime import timedelta
 
 SIMPLE_JWT = {
     'ACCESS_TOKEN_LIFETIME': timedelta(hours=1),
