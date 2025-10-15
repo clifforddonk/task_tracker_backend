@@ -5,6 +5,7 @@ from rest_framework import status
 from .serializers import TaskSerializer
 from .models import Task
 from rest_framework.permissions import IsAuthenticated
+from activity.utils import log_activity
 
 
 # ==================== LIST ALL TASKS ====================
@@ -40,7 +41,13 @@ def create_task(request):
     
     serializer = TaskSerializer(data=request.data, context={'request': request})
     if serializer.is_valid():
-        serializer.save(created_by=request.user)
+        task = serializer.save(created_by=request.user)
+        log_activity(
+            action="CREATED",
+            user=request.user,
+            task=task,  # Changed from related_task=task
+            description=f"Task '{task.title}' created by {request.user.username}"
+        )
         return Response(serializer.data, status=status.HTTP_201_CREATED)
     return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
@@ -103,8 +110,16 @@ def update_task_status(request, pk):
             status=status.HTTP_400_BAD_REQUEST
         )
     
+    old_status = task.status
     task.status = request.data['status']
     task.save()
+    log_activity(
+        action="status_changed",
+        user=request.user,
+        task=task,  # <-- use 'task', not 'related_task'
+        description=f"Status changed from {old_status} to {task.status} by {request.user.username}",
+        changes={"from": old_status, "to": task.status}
+    )
     
     serializer = TaskSerializer(task, context={'request': request})
     return Response(serializer.data, status=status.HTTP_200_OK)
@@ -132,6 +147,12 @@ def edit_task(request, pk):
     
     if serializer.is_valid():
         serializer.save()
+        log_activity(
+            action="UPDATED",
+            user=request.user,
+            task=task,
+            description=f"Task '{task.title}' updated by {request.user.username}"
+        )
         return Response(serializer.data, status=status.HTTP_200_OK)
     return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
@@ -140,19 +161,24 @@ def edit_task(request, pk):
 @api_view(['DELETE'])
 @permission_classes([IsAuthenticated])
 def delete_task(request, pk):
-    """
-    Delete a task (Admin only)
-    """
     task = get_object_or_404(Task, pk=pk)
     
     if request.user.role != 'admin':
-        return Response(
-            {'detail': 'Only admin users can delete tasks.'}, 
-            status=status.HTTP_403_FORBIDDEN
-        )
+        return Response({'detail': 'Not authorized.'}, status=403)
     
-    task.delete()
-    return Response(
-        {'detail': 'Task deleted successfully.'}, 
-        status=status.HTTP_204_NO_CONTENT
+    # Store task details before deletion
+    task_title = task.title
+    task_id = task.id
+    
+    # Log activity BEFORE deleting the task
+    log_activity(
+        action="deleted",
+        user=request.user,
+        task=task,  # Still have access to task object
+        description=f"Task '{task_title}' (ID: {task_id}) deleted by {request.user.username}"
     )
+    
+    # Now delete the task
+    task.delete()
+    
+    return Response(status=status.HTTP_204_NO_CONTENT)

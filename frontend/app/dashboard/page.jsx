@@ -8,6 +8,7 @@ import TaskCard from "../components/layout/TaskCard";
 import DashboardCard from "../components/layout/DashboardCard";
 import { useUser } from "@/context/UserContext";
 import { Activity as ActivityIcon } from "lucide-react";
+import ActivityCard from "../components/ActivityLog/ActivityCard";
 
 import {
   LogOut,
@@ -365,7 +366,9 @@ const Page = () => {
         {/* Recent Activity Section */}
         <div className="bg-white rounded-xl shadow-md p-6 mt-8">
           <div className="flex justify-between items-center mb-6">
-            <h2 className="text-2xl font-bold text-gray-900">Recent Activity</h2>
+            <h2 className="text-2xl font-bold text-gray-900">
+              Recent Activity
+            </h2>
             <button
               onClick={() => router.push("/dashboard/activity")}
               className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors duration-200 flex items-center gap-2"
@@ -397,40 +400,11 @@ const Page = () => {
           ) : (
             <div className="space-y-4">
               {activities.map((activity) => (
-                <div
+                <ActivityCard
                   key={activity.id}
-                  className="flex items-start gap-4 p-4 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors duration-200"
-                >
-                  <div className="text-3xl">
-                    {getActivityIcon(activity.action)}
-                  </div>
-                  <div className="flex-1">
-                    <div className="flex items-start justify-between">
-                      <div>
-                        <p className="font-semibold text-gray-900">
-                          {activity.user_name || "Unknown User"}
-                        </p>
-                        <p className="text-gray-700 mt-1">
-                          <span className="font-medium capitalize">
-                            {activity.action}
-                          </span>{" "}
-                          task:{" "}
-                          <span className="text-blue-600">
-                            {activity.task_title}
-                          </span>
-                        </p>
-                        {activity.description && (
-                          <p className="text-gray-600 text-sm mt-1">
-                            {activity.description}
-                          </p>
-                        )}
-                      </div>
-                      <span className="text-sm text-gray-500 whitespace-nowrap ml-4">
-                        {formatTimestamp(activity.timestamp)}
-                      </span>
-                    </div>
-                  </div>
-                </div>
+                  activity={activity}
+                  currentUser={user}
+                />
               ))}
             </div>
           )}
