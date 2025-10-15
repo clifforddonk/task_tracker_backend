@@ -224,14 +224,6 @@ const Page = () => {
 
           {/* Action Buttons */}
           <div className="flex gap-3">
-            {/* Activity Log - Available to All Users */}
-            <Link href="/dashboard/activity">
-              <button className="flex items-center space-x-2 px-6 py-3 bg-slate-600 text-white rounded-lg hover:bg-slate-700 transition shadow-md">
-                <ActivityIcon className="h-5 w-5" />
-                <span>Activity Log</span>
-              </button>
-            </Link>
-
             {/* Create Task Button - Admin Only */}
             {user?.role === "admin" && (
               <Link href="/dashboard/tasks">
