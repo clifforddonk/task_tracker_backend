@@ -42,6 +42,9 @@ export const loginUser = async (email, password) => {
     localStorage.setItem("access_token", response.data.access);
     localStorage.setItem("refresh_token", response.data.refresh);
 
+    // Set the token in axios headers immediately
+    axiosInstance.defaults.headers.common["Authorization"] = `Bearer ${response.data.access}`;
+
     return "Login successful!";
   } catch (error) {
     const errorMessage =
@@ -132,4 +135,18 @@ export const getAllUsers = async () => {
   } catch (error) {
     throw error.response?.data || "Failed to fetch users.";
   }
+};
+
+// Make sure you're storing the token after successful login
+const login = async (credentials) => {
+  const response = await axiosInstance.post('/users/login/', credentials);
+  if (response.data.token || response.data.access) {
+    // Store token in localStorage
+    localStorage.setItem('token', response.data.token || response.data.access);
+    // If using refresh token
+    if (response.data.refresh) {
+      localStorage.setItem('refreshToken', response.data.refresh);
+    }
+  }
+  return response.data;
 };
