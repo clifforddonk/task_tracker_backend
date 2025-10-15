@@ -5,5 +5,5 @@ class ActivityConfig(AppConfig):
     default_auto_field = 'django.db.models.BigAutoField'
     name = 'activity'
 
-    def ready(self):
-        import activity.signals  # Import signals when app is ready
+    
+     # Import signals when app is ready

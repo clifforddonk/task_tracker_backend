@@ -1,9 +1,10 @@
 from .models import Activity
 
-def log_activity(action, user, related_task=None, description=""):
-  Activity.objects.create(
-      action=action,
-      user=user,
-      related_task=related_task,
-      description=description
-  )
+def log_activity(action, user, task=None, description="", changes=None):
+    Activity.objects.create(
+        action=action,
+        user=user,
+        task=task,  # This expects 'task', not 'related_task'
+        description=description,
+        changes=changes
+    )
