@@ -68,8 +68,8 @@ MIDDLEWARE = [
 
 ROOT_URLCONF = "backend.urls"
 
-REST_FRAMEWORK={
-    "NON_FIELD_ERRORS_KEYS":"errors",'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.PageNumberPagination',
+REST_FRAMEWORK = {
+    "NON_FIELD_ERRORS_KEYS": "errors", 'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.PageNumberPagination',
     'PAGE_SIZE': 20,
     'DEFAULT_FILTER_BACKENDS': [
         'rest_framework.filters.SearchFilter',
@@ -157,8 +157,7 @@ CORS_ALLOWED_ORIGINS = [
 # REST Framework Settings
 REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': [
-        'rest_framework.authentication.TokenAuthentication',
-        'rest_framework.authentication.SessionAuthentication',  # Add this
+        'rest_framework_simplejwt.authentication.JWTAuthentication',
     ],
     'DEFAULT_PERMISSION_CLASSES': [
         'rest_framework.permissions.IsAuthenticated',
@@ -166,12 +165,11 @@ REST_FRAMEWORK = {
 }
 
 
-# JWT Settings
-
 SIMPLE_JWT = {
     'ACCESS_TOKEN_LIFETIME': timedelta(hours=1),
-    'REFRESH_TOKEN_LIFETIME': timedelta(days=7),
+    'REFRESH_TOKEN_LIFETIME': timedelta(days=1),
     'ROTATE_REFRESH_TOKENS': False,
     'BLACKLIST_AFTER_ROTATION': True,
     'AUTH_HEADER_TYPES': ('Bearer',),
+    'AUTH_HEADER_NAME': 'HTTP_AUTHORIZATION',
 }
