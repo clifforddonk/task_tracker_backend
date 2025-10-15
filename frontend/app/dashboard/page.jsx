@@ -53,29 +53,26 @@ const Page = () => {
     const fetchData = async () => {
       try {
         const tasksData = await getAllTasks();
-        // console.log("Tasks data:", tasksData); // DEBUG
 
         // Filter tasks based on user role
         let userTasks = tasksData;
         if (user?.role === "staff") {
-          // Staff only sees tasks where they are in the assigned_to array
+          // ✅ FIX: Change userData.id to user.id
           userTasks = tasksData.filter(
-            (task) => task.assigned_user === userData.id
+            (task) => task.assigned_user === user.id
           );
         }
 
-        // console.log("Filtered tasks:", userTasks); // DEBUG
         setTasks(userTasks);
         setFilteredTasks(userTasks);
         setTaskCounts(calculateTaskCounts(userTasks));
       } catch (error) {
-        // console.error("Error fetching data:", error);
         router.push("/auth/login");
       }
     };
 
     fetchData();
-  }, [router]);
+  }, [router, user]); // Added user as dependency
 
   // Handle search and filter
   useEffect(() => {
