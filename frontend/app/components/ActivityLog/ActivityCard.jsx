@@ -21,18 +21,44 @@ const ActivityCard = ({ activity, currentUser }) => {
   };
 
   const getSimpleDescription = (activity) => {
-    const description = activity.description || "";
-    const actor = activity.user?.username || "";
-    const isCurrentUser = currentUser?.id === activity.user?.id;
+    const action = activity.action?.toLowerCase();
+    const isCurrentUser = activity.user.id === currentUser?.id;
+    const userName = isCurrentUser ? "You" : activity.user.username;
 
-    // Extract everything after the username (e.g., "deleted task 'task 4'")
-    const afterUsername = description.replace(actor, "").trim();
+    switch (action) {
+      case "created":
+        return isCurrentUser
+          ? `You created task "${taskTitle}"`
+          : `${userName} created task "${taskTitle}"`;
 
-    // Replace the username with "You" if current user performed the action
-    const displayActor = isCurrentUser ? "You" : actor;
+      case "updated":
+        return isCurrentUser
+          ? `You updated task "${taskTitle}"`
+          : `${userName} updated task "${taskTitle}"`;
 
-    // Final readable description
-    return `${displayActor} ${afterUsername}`;
+      case "status_changed": {
+        const status = activity.changes?.to?.replace("_", " ") || "updated";
+        return isCurrentUser
+          ? `You marked "${taskTitle}" as ${status}`
+          : `${userName} marked "${taskTitle}" as ${status}`;
+      }
+
+      case "deleted": {
+        // Extract username and replace with "You" if current user
+        const deletedBy = activity.description.split(" deleted")[0].trim();
+        const isCurrentUser = deletedBy === currentUser?.username;
+
+        const updatedDescription = activity.description.replace(
+          deletedBy,
+          isCurrentUser ? "You" : deletedBy
+        );
+
+        return updatedDescription;
+      }
+
+      default:
+        return activity.description;
+    }
   };
 
   return (
