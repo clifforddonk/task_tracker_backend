@@ -1,11 +1,8 @@
-// components/ActivityLog/ActivityCard.jsx
-
 "use client";
 
 import { Clock } from "lucide-react";
 
 const ActivityCard = ({ activity, currentUser }) => {
-  // Helper to get the reliable task title
   const taskTitle = activity.task_info?.title || "a task";
 
   const getActionIcon = (action) => {
@@ -24,19 +21,18 @@ const ActivityCard = ({ activity, currentUser }) => {
   };
 
   const getSimpleDescription = (activity) => {
-    const isCurrentUser = activity.user.id === currentUser?.id;
-    const userName = isCurrentUser ? "You" : activity.user.username;
+    const description = activity.description || "";
+    const actor = activity.user?.username || "";
+    const isCurrentUser = currentUser?.id === activity.user?.id;
 
-    // Use the pre-formatted description from the backend as the primary source of truth
-    // This ensures consistency with what the backend logs.
-    const description = activity.description;
-    
-    // Replace the backend username with "You" if it's the current user for a more personal feel.
-    if (isCurrentUser) {
-        return description.replace(activity.user.username, "You");
-    }
+    // Extract everything after the username (e.g., "deleted task 'task 4'")
+    const afterUsername = description.replace(actor, "").trim();
 
-    return description;
+    // Replace the username with "You" if current user performed the action
+    const displayActor = isCurrentUser ? "You" : actor;
+
+    // Final readable description
+    return `${displayActor} ${afterUsername}`;
   };
 
   return (
