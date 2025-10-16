@@ -1,4 +1,5 @@
 # activities/views.py
+
 from rest_framework import viewsets, status
 from rest_framework.decorators import action
 from rest_framework.response import Response
@@ -19,10 +20,14 @@ class ActivityViewSet(viewsets.ReadOnlyModelViewSet):
         if user.role == 'admin':
             return Activity.objects.all().order_by('-timestamp')
 
-        # Staff sees only logs for tasks assigned to them
+        # ✅ UPDATED STAFF LOGIC:
+        # Staff sees logs for tasks assigned to them (live or deleted)
+        # OR actions they performed themselves.
         return Activity.objects.filter(
-            Q(task__assigned_user=user) | Q(user=user)
-        ).order_by('-timestamp')
+            Q(task__assigned_user=user) |         # Case 1: The task still exists and is assigned to them.
+            Q(user=user) |                       # Case 2: They were the one who performed the action.
+            Q(details__assigned_user_id=user.id) # Case 3: The task is deleted, but the log's snapshot shows it was assigned to them.
+        ).distinct().order_by('-timestamp')
 
     @action(detail=False, methods=['get'])
     def recent(self, request):
