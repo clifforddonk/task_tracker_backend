@@ -1,8 +1,13 @@
+// components/ActivityLog/ActivityCard.jsx
+
 "use client";
 
 import { Clock } from "lucide-react";
 
-const SimpleActivityCard = ({ activity, currentUser }) => {
+const ActivityCard = ({ activity, currentUser }) => {
+  // Helper to get the reliable task title
+  const taskTitle = activity.task_info?.title || "a task";
+
   const getActionIcon = (action) => {
     switch (action) {
       case "CREATED":
@@ -22,29 +27,16 @@ const SimpleActivityCard = ({ activity, currentUser }) => {
     const isCurrentUser = activity.user.id === currentUser?.id;
     const userName = isCurrentUser ? "You" : activity.user.username;
 
-    switch (activity.action.toLowerCase()) {
-      case "status_changed":
-        return isCurrentUser
-          ? `You marked "${
-              activity.task_title
-            }" as ${activity.changes.to.replace("_", " ")}`
-          : `${userName} marked "${
-              activity.task_title
-            }" as ${activity.changes.to.replace("_", " ")}`;
-      case "created":
-        return isCurrentUser
-          ? `You created task "${activity.task_title}"`
-          : `You have been assigned "${activity.task_title}" by ${userName} `;
-      case "updated":
-        return isCurrentUser
-          ? `You updated  task "${activity.task_title}"`
-          : `${userName} updated task "${activity.task_title}
-          "`;
-      case "deleted":
-        return isCurrentUser ? "You deleted task" : `${userName} deleted task`;
-      default:
-        return activity.description;
+    // Use the pre-formatted description from the backend as the primary source of truth
+    // This ensures consistency with what the backend logs.
+    const description = activity.description;
+    
+    // Replace the backend username with "You" if it's the current user for a more personal feel.
+    if (isCurrentUser) {
+        return description.replace(activity.user.username, "You");
     }
+
+    return description;
   };
 
   return (
@@ -54,7 +46,7 @@ const SimpleActivityCard = ({ activity, currentUser }) => {
         <p className="text-sm text-gray-900 truncate">
           {getSimpleDescription(activity)}
         </p>
-        <div className="flex items-center text-xs text-gray-500">
+        <div className="flex items-center text-xs text-gray-500 mt-1">
           <Clock className="h-3 w-3 mr-1" />
           <span>
             {new Date(activity.timestamp).toLocaleTimeString([], {
@@ -68,4 +60,4 @@ const SimpleActivityCard = ({ activity, currentUser }) => {
   );
 };
 
-export default SimpleActivityCard;
+export default ActivityCard;
