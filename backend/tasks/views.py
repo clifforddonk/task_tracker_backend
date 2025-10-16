@@ -161,24 +161,28 @@ def edit_task(request, pk):
 @api_view(['DELETE'])
 @permission_classes([IsAuthenticated])
 def delete_task(request, pk):
+    """
+    Delete a task (Admin only)
+    """
     task = get_object_or_404(Task, pk=pk)
-    
+
     if request.user.role != 'admin':
-        return Response({'detail': 'Not authorized.'}, status=403)
-    
-    # Store task details before deletion
-    task_title = task.title
-    task_id = task.id
-    
-    # Log activity BEFORE deleting the task
+        return Response({'detail': 'You do not have permission to delete this task.'}, status=status.HTTP_403_FORBIDDEN)
+
+    task_title = task.title  # Store title for the log and response message
+
+    # Log the activity BEFORE deleting the task.
+    # The log_activity utility will save a snapshot of the task details.
     log_activity(
-        action="deleted",
         user=request.user,
-        task=task,  # Still have access to task object
-        description=f"  {request.user.username} deleted task '{task_title}')"
+        action="deleted",
+        task=task,
+        # THIS IS THE CORRECTED DESCRIPTION FORMAT
+        description=f"{request.user.username} deleted task '{task_title}'"
     )
-    
-    # Now delete the task
+
+    # Now, delete the task object from the database
     task.delete()
-    
+
+    # It's standard practice to return a 204 NO CONTENT on successful deletion.
     return Response(status=status.HTTP_204_NO_CONTENT)
