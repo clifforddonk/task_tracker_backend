@@ -1,8 +1,9 @@
+// ActivityPage.jsx
+
 "use client";
 import { useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
 import { useUser } from "@/context/UserContext";
-import { getRecentActivityLogs } from "@/utils/activityService";
+import { getAllActivities } from "@/utils/activityService"; // <-- CHANGE THIS IMPORT
 import Loading from "@/app/components/layout/Loading";
 import ActivityCard from "@/app/components/ActivityLog/ActivityCard";
 import ActivityNavigation from "@/app/components/ActivityLog/ActivityNavigation";
@@ -13,16 +14,17 @@ const ActivityPage = () => {
   const { user, loading } = useUser();
   const [activities, setActivities] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
-  const router = useRouter();
 
   useEffect(() => {
     const fetchActivities = async () => {
       try {
-        const data = await getRecentActivityLogs();
-        setActivities(data);
-        setIsLoading(false);
+        const data = await getAllActivities(); // <-- USE THIS FUNCTION
+        // Sort by newest first
+        const sortedData = data.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
+        setActivities(sortedData);
       } catch (error) {
         console.error("Error fetching activities:", error);
+      } finally {
         setIsLoading(false);
       }
     };
@@ -39,14 +41,12 @@ const ActivityPage = () => {
   return (
     <div className="min-h-screen bg-gray-50">
       <ActivityNavigation user={user} />
-
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="bg-white rounded-xl shadow-md p-6">
           <ActivityHeader
             userRole={user?.role}
             activitiesCount={activities.length}
           />
-
           {activities.length === 0 ? (
             <EmptyActivities userRole={user?.role} />
           ) : (
