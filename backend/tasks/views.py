@@ -175,7 +175,7 @@ def delete_task(request, pk):
         action="deleted",
         user=request.user,
         task=task,  # Still have access to task object
-        description=f"Task '{task_title}' (ID: {task_id}) deleted by {request.user.username}"
+        description=f"  {request.user.username} deleted task '{task_title}')"
     )
     
     # Now delete the task

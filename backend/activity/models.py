@@ -14,7 +14,7 @@ class Activity(models.Model):
         ('comment_added', 'Comment Added'),
     ]
 
-    task = models.ForeignKey(Task, on_delete=models.CASCADE,
+    task = models.ForeignKey(Task, on_delete=models.SET_NULL,
                              related_name='activities', null=True, blank=True)
     user = models.ForeignKey(
         settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, related_name='activities')

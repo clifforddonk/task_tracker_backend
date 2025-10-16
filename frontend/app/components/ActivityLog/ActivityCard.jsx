@@ -41,7 +41,7 @@ const SimpleActivityCard = ({ activity, currentUser }) => {
           : `${userName} updated task "${activity.task_title}
           "`;
       case "deleted":
-        return isCurrentUser ? "You deleted" : `${userName} deleted`;
+        return isCurrentUser ? "You deleted task" : `${userName} deleted task`;
       default:
         return activity.description;
     }
