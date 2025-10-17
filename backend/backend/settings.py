@@ -139,6 +139,8 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/5.2/howto/static-files/
 
 STATIC_URL = "static/"
+STATIC_ROOT = os.path.join(BASE_DIR, 'static')
+
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.2/ref/settings/#default-auto-field
@@ -147,7 +149,7 @@ DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
 # CORS Settings
 CORS_ALLOWED_ORIGINS = [
-    "https://paymaster-task-tracker.vercel.app/","http://localhost:3000" # Next.js
+    "https://paymaster-task-tracker.vercel.app","http://localhost:3000" # Next.js
     
 ]
 
