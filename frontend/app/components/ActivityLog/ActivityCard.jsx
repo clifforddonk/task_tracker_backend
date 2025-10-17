@@ -62,15 +62,15 @@ const ActivityCard = ({ activity, currentUser }) => {
   };
 
   return (
-    <div className="flex items-center space-x-3 p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition">
-      <span className="text-xl">{getActionIcon(activity.action)}</span>
+    <div className="flex items-start space-x-3 p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition">
+      <span className="text-xl flex-shrink-0">{getActionIcon(activity.action)}</span>
       <div className="flex-1 min-w-0">
-        <p className="text-sm text-gray-900 truncate">
+        <p className="text-sm text-gray-900 break-words">
           {getSimpleDescription(activity)}
         </p>
         <div className="flex items-center text-xs text-gray-500 mt-1">
-          <Clock className="h-3 w-3 mr-1" />
-          <span>
+          <Clock className="h-3 w-3 mr-1 flex-shrink-0" />
+          <span className="whitespace-nowrap">
             {new Date(activity.timestamp).toLocaleTimeString([], {
               hour: "2-digit",
               minute: "2-digit",
