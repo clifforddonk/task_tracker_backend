@@ -147,7 +147,8 @@ DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
 # CORS Settings
 CORS_ALLOWED_ORIGINS = [
-    "http://localhost:3000",  # Next.js
+    "https://paymaster-task-tracker.vercel.app/",  # Next.js
+    
 ]
 
 
