@@ -1,7 +1,7 @@
 import axios from "axios";
 
 const axiosInstance = axios.create({
-  baseURL: "http://127.0.0.1:8000",
+  baseURL: "https://task-tracker-backend-m40u.onrender.com",
   headers: {
     "Content-Type": "application/json",
   },
@@ -38,7 +38,7 @@ axiosInstance.interceptors.response.use(
       if (refreshToken) {
         try {
           const response = await axios.post(
-            "http://127.0.0.1:8000/auth/token/refresh/",
+            "https://task-tracker-backend-m40u.onrender.com/auth/token/refresh/",
             { refresh: refreshToken }
           );
 
