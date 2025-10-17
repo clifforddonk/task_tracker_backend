@@ -19,7 +19,7 @@ SECRET_KEY = "django-insecure-ci$r=lcxn4=!c14dmneykz97d%4$8ge)+i=l3k1s0ehjykk5z7
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ['task-tracker-backend-m40u.onrender.com', 'localhost', '127.0.0.1']
 
 
 # Application definition
