@@ -10,18 +10,11 @@ const ActivityNavigation = ({ user }) => {
             <Link href="/dashboard">
               <button className="flex items-center space-x-2 text-gray-600 hover:text-gray-900">
                 <ArrowLeft className="h-5 w-5" />
-                <span>Back to Dashboard</span>
+                <span className="">Back</span>
               </button>
             </Link>
           </div>
           <h1 className="text-2xl font-bold text-indigo-600">Activity Log</h1>
-          <div className="flex items-center space-x-2 text-gray-700">
-            <User className="h-5 w-5" />
-            <span className="font-medium">{user?.username}</span>
-            <span className="text-sm text-gray-500 capitalize">
-              ({user?.role})
-            </span>
-          </div>
         </div>
       </div>
     </nav>
