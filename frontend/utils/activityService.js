@@ -15,7 +15,7 @@ export const getAllActivities = async (filters = {}) => {
     
     return response.data.results || response.data;
   } catch (error) {
-    console.error('Error fetching activities:', error);
+ 
     throw error;
   }
 };
@@ -28,7 +28,7 @@ export const getTaskActivities = async (taskId) => {
     
     return response.data;
   } catch (error) {
-    console.error('Error fetching task activities:', error);
+  
     throw error;
   }
 };
@@ -41,7 +41,7 @@ export const getRecentActivities = async () => {
     
     return response.data;
   } catch (error) {
-    console.error('Error fetching recent activities:', error);
+   
     throw error;
   }
 };
@@ -51,7 +51,7 @@ export const getActivityLogs = async () => {
     const response = await axiosInstance.get("/api/activity/");
     return response.data;
   } catch (error) {
-    console.error("Error fetching activity logs:", error);
+ 
     throw error;
   }
 };
@@ -61,7 +61,7 @@ export const getRecentActivityLogs = async () => {
     const response = await axiosInstance.get("/api/activity/recent/");
     return response.data;
   } catch (error) {
-    console.error("Error fetching recent activity logs:", error);
+   
     throw error;
   }
 };
@@ -71,7 +71,7 @@ export const getActivityLogsByTask = async (taskId) => {
     const response = await axiosInstance.get(`/api/activity/by_task/?task_id=${taskId}`);
     return response.data;
   } catch (error) {
-    console.error("Error fetching activity logs by task:", error);
+    
     throw error;
   }
 };
