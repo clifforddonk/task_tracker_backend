@@ -56,7 +56,7 @@ const EditTaskPage = () => {
         setUsers(usersData);
         setLoading(false);
       } catch (error) {
-        console.error("Error:", error);
+       
         router.push("/dashboard");
       }
     };
