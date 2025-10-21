@@ -25,7 +25,7 @@ export const UserProvider = ({ children }) => {
         const response = await axiosInstance.get("/api/users/profile/");
         setUser(response.data);
       } catch (error) {
-        console.error("Error fetching user:", error);
+       
         // Only clear auth if it's an auth error (401)
         if (error.response?.status === 401) {
           localStorage.removeItem("access_token");
@@ -50,7 +50,7 @@ export const UserProvider = ({ children }) => {
       const response = await axiosInstance.get("/api/users/profile/");
       setUser(response.data);
     } catch (error) {
-      console.error("Error refreshing user:", error);
+     
     }
   };
 
