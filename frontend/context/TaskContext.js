@@ -15,7 +15,7 @@ export const TaskProvider = ({ children }) => {
         const data = await getAllTasks();
         setTasks(data);
       } catch (error) {
-        console.error("Error fetching tasks:", error);
+    
       } finally {
         setLoading(false);
       }
