@@ -23,7 +23,7 @@ const ActivityPage = () => {
         const sortedData = data.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
         setActivities(sortedData);
       } catch (error) {
-        console.error("Error fetching activities:", error);
+      
       } finally {
         setIsLoading(false);
       }
