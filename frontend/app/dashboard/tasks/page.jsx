@@ -50,7 +50,7 @@ const CreateTaskPage = () => {
         const usersData = await getAllUsers();
         setUsers(usersData);
       } catch (error) {
-        console.error("Error:", error);
+       
         router.push("/auth/login");
       }
     };
