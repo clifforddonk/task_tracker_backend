@@ -26,7 +26,7 @@ const Page = () => {
 
     try {
       await loginUser(email, password);
-      setMessage("Login successful! Redirecting...");
+      setMessage("Login successful! Redirecting To Dashboard...");
 
       // Wait a bit longer and use router.push directly
       setTimeout(() => {
